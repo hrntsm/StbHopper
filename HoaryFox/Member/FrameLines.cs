@@ -1,62 +1,60 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using STBReader;
-using STBReader.Model;
 using Rhino.Geometry;
-using STBReader.Member;
+using STBDotNet.Elements;
+using STBDotNet.Elements.StbModel;
+using STBDotNet.Elements.StbModel.StbMember;
 
 namespace HoaryFox.Member
 {
     public class FrameLines
     {
-        private readonly StbData _stbData;
-        private readonly StbNodes _nodes;
+        private readonly StbElements _stbElements;
+        private readonly List<Node> _nodes;
         
-        public FrameLines(StbData stbData)
+        public FrameLines(StbElements stbElements)
         {
-            _stbData = stbData;
-            _nodes = stbData.Nodes;
+            _stbElements = stbElements;
+            _nodes = stbElements.Model.Nodes;
         }
 
         public List<Line> Columns()
         {
-            return CreateFrameLines(_stbData.Columns);
+            return CreateFrameLines(_stbElements.Model.Members.Columns);
         }
 
         public List<Line> Girders()
         {
-            return CreateFrameLines(_stbData.Girders);
+            return CreateFrameLines(_stbElements.Model.Members.Girders);
         }
 
         public List<Line> Posts()
         {
-            return CreateFrameLines(_stbData.Posts);
+            return CreateFrameLines(_stbElements.Model.Members.Posts);
         }
 
         public List<Line> Beams()
         {
-            return CreateFrameLines(_stbData.Beams);
+            return CreateFrameLines(_stbElements.Model.Members.Beams);
         }
 
         public List<Line> Braces()
         {
-            return CreateFrameLines(_stbData.Braces);
+            return CreateFrameLines(_stbElements.Model.Members.Braces);
         }
 
         public List<Point3d> Nodes()
         {
-            return _nodes.Position.Select(point => new Point3d(point.X, point.Y, point.Z)).ToList();
+            return _nodes.ToRhino();
         }
 
-        private List<Line> CreateFrameLines(StbFrame frame)
+        private List<Line> CreateFrameLines(IEnumerable<IFrame> frames)
         {
             var lines = new List<Line>();
-            for (var i = 0; i < frame.Id.Count; i++)
+            foreach (IFrame frame in frames)
             {
-                int idNodeStart = _nodes.Id.IndexOf(frame.IdNodeStart[i]);
-                int idNodeEnd = _stbData.Nodes.Id.IndexOf(frame.IdNodeEnd[i]);
-                var ptStart = new Point3d(_nodes.X[idNodeStart], _nodes.Y[idNodeStart], _nodes.Z[idNodeStart]);
-                var ptEnd = new Point3d(_nodes.X[idNodeEnd], _nodes.Y[idNodeEnd], _nodes.Z[idNodeEnd]);
+                Point3d ptStart = _nodes[frame.IdNodeStart].Position.ToRhino();
+                Point3d ptEnd = _nodes[frame.IdNodeEnd].Position.ToRhino();
                 lines.Add(new Line(ptStart, ptEnd));
             }
             return lines;

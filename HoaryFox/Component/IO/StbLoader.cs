@@ -1,15 +1,12 @@
 ﻿using System;
 using Grasshopper.Kernel;
-using STBReader;
+using STBDotNet;
+using STBDotNet.Elements;
 
 namespace HoaryFox.Component.IO
 {
     public class StbLoader:GH_Component
     {
-        private string _path;
-        private readonly double _lengthTolerance = DocumentTolerance();
-        private readonly double _angleTolerance = DocumentAngleTolerance();
-            
         public StbLoader()
           : base("Load stb data", "Loader", "Read ST-Bridge file and display", "HoaryFox", "IO")
         {
@@ -27,12 +24,13 @@ namespace HoaryFox.Component.IO
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            // 対象の stb の pathを取得
-            if (!DA.GetData("path", ref _path)) { return; }
+            var path = string.Empty;
+            if (!DA.GetData("path", ref path)) { return; }
             
-            var stbData = new StbData(_path, _lengthTolerance, _angleTolerance);
+            var serializer = new STBDotNet.Serialization.Serializer();
+            StbElements stbElements = serializer.Deserialize(path);
             
-            DA.SetData(0, stbData);
+            DA.SetData(0, stbElements);
         }
 
         protected override System.Drawing.Bitmap Icon => Properties.Resource.LoadStb;

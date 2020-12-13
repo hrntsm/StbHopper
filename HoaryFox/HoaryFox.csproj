@@ -51,6 +51,7 @@
     <Compile Include="Component\Tag\Section\ColumnSecTag.cs" />
     <Compile Include="Component\Tag\Section\GirderSecTag.cs" />
     <Compile Include="Component\Tag\Section\PostSecTag.cs" />
+    <Compile Include="Convert.cs" />
     <Compile Include="Member\CreateBreps.cs" />
     <Compile Include="Member\FrameLines.cs" />
     <Compile Include="Member\CreateBar.cs" />
@@ -66,12 +67,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="STBReader, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Library\STBReader.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="STBDotNet">
+      <HintPath>..\..\STBDotNet\STBDotNet\bin\Debug\netstandard2.0\STBDotNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -107,7 +107,6 @@
     <None Include="Resources\InfoIcon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Library\STBReader.dll" />
     <Content Include="Resources\InfoIcon_Info.txt" />
     <None Include="Resources\LoadStb.png" />
     <None Include="Resources\ToKaramba.png" />

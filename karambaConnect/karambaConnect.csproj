@@ -43,9 +43,8 @@
       <HintPath>Library\karamba132full\kConnect.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="STBReader">
-      <HintPath>Library\STBReader.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="STBDotNet">
+      <HintPath>..\..\STBDotNet\STBDotNet\bin\Debug\netstandard2.0\STBDotNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

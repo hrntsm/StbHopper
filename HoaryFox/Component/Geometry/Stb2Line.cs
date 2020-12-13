@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Grasshopper.Kernel;
 using HoaryFox.Member;
-using STBReader;
 using Rhino.Geometry;
+using STBDotNet.Elements;
 
 
 namespace HoaryFox.Component.Geometry
 {
     public class Stb2Line:GH_Component
     {
-        private StbData _stbData;
+        private StbElements _stbElements;
         private List<Point3d> _nodes = new List<Point3d>();
         private List<Line> _columns = new List<Line>();
         private List<Line> _girders = new List<Line>();
@@ -51,7 +51,7 @@ namespace HoaryFox.Component.Geometry
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            if (!DA.GetData("Data", ref _stbData)) { return; }
+            if (!DA.GetData("Data", ref _stbElements)) { return; }
 
             MakeLine();
 
@@ -65,7 +65,7 @@ namespace HoaryFox.Component.Geometry
 
         private void MakeLine()
         {
-            var createLines = new FrameLines(_stbData);
+            var createLines = new FrameLines(_stbElements);
             _nodes = createLines.Nodes();
             _columns = createLines.Columns();
             _girders = createLines.Girders();

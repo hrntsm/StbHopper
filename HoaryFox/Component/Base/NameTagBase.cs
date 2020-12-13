@@ -3,27 +3,27 @@ using System.Collections.Generic;
 using System.Drawing;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using STBReader;
-using STBReader.Member;
-using STBReader.Model;
+using STBDotNet.Elements;
+using STBDotNet.Elements.StbModel;
+using STBDotNet.Elements.StbModel.StbMember;
 
 namespace HoaryFox.Component.Base
 {
-    public class NameTagBase:GH_Component
+    public class NameTagBase : GH_Component
     {
-        private StbData _stbData;
+        private StbElements _stbElements;
         private int _size;
-        private readonly FrameType _frameType;
+        private readonly MemberBase _member;
 
         private readonly List<string> _frameName = new List<string>();
         private readonly List<Point3d> _framePos = new List<Point3d>();
 
         public override bool IsPreviewCapable => true;
 
-        protected NameTagBase(string name, string nickname, string description, FrameType frameType)
-            :base(name, nickname, description, category: "HoaryFox", subCategory: "Name")
+        protected NameTagBase(string name, string nickname, string description, MemberBase member)
+            :base(name, nickname, description, "HoaryFox", "Name")
         {
-            _frameType = frameType;
+            _member = member;
         }
 
         public override void ClearData()
@@ -46,36 +46,18 @@ namespace HoaryFox.Component.Base
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            if (!DA.GetData("Data", ref _stbData)) { return; }
+            if (!DA.GetData("Data", ref _stbElements)) { return; }
             if (!DA.GetData("Size", ref _size)) { return; }
 
-            StbNodes nodes = _stbData.Nodes;
-            StbFrame frame;
-            switch (_frameType)
+            List<Node> nodes = _stbElements.Model.Nodes;
+            IEnumerable<IFrame> frames = Util.GetFrames(_stbElements, _member);
+
+            foreach (IFrame frame in frames)
             {
-                case FrameType.Column: frame = _stbData.Columns; break;
-                case FrameType.Post: frame = _stbData.Posts; break;
-                case FrameType.Girder: frame = _stbData.Girders; break;
-                case FrameType.Beam: frame = _stbData.Beams; break;
-                case FrameType.Brace: frame = _stbData.Braces; break;
-                case FrameType.Slab:
-                case FrameType.Wall:
-                case FrameType.Any:
-                    return;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            
-            for (var i = 0; i < frame.Id.Count; i++)
-            {
-                int idNodeStart = nodes.Id.IndexOf(frame.IdNodeStart[i]);
-                int idNodeEnd = nodes.Id.IndexOf(frame.IdNodeEnd[i]);
-                _frameName.Add(frame.Name[i]);
-                _framePos.Add(new Point3d(
-                    (nodes.X[idNodeStart] + nodes.X[idNodeEnd]) / 2.0,
-                    (nodes.Y[idNodeStart] + nodes.Y[idNodeEnd]) / 2.0,
-                    (nodes.Z[idNodeStart] + nodes.Z[idNodeEnd]) / 2.0)
-                );
+                int idStart = frame.IdNodeStart;
+                int idEnd = frame.IdNodeEnd;
+                _frameName.Add(frame.Name);
+                _framePos.Add(((nodes[idStart].Position + nodes[idEnd].Position) / 2d).ToRhino());
             }
 
             DA.SetDataList(0, _frameName);

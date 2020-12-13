@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using Rhino.Geometry;
 using Grasshopper.Kernel;
 using HoaryFox.Member;
-using STBReader;
-using STBReader.Member;
+using STBDotNet;
+using STBDotNet.Elements;
+using STBDotNet.Elements.StbModel.StbMember;
 
 namespace HoaryFox.Component.Geometry
 {
     public class Stb2Brep:GH_Component
     {
-        private StbData _stbData;
+        private StbElements _stbElements;
 
         private List<Brep> _slabBreps = new List<Brep>();
         private List<Brep> _wallBreps = new List<Brep>();
@@ -47,7 +48,7 @@ namespace HoaryFox.Component.Geometry
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            if (!DA.GetData("Data", ref _stbData)) { return; }
+            if (!DA.GetData("Data", ref _stbElements)) { return; }
             MakeBrep();
 
             for (var i = 0; i < 5; i++)
@@ -63,9 +64,9 @@ namespace HoaryFox.Component.Geometry
 
         private void MakeBrep()
         {
-            var stbFrames = new List<StbFrame>
+            var stbFrames = new List<FrameBase>
             {
-                _stbData.Columns, _stbData.Girders, _stbData.Posts, _stbData.Beams, _stbData.Braces
+                _stbElements.Model.Members.Columns, _stbData.Girders, _stbData.Posts, _stbData.Beams, _stbData.Braces
             };
             
             var breps = new FrameBreps(_stbData);
