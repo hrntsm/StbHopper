@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using HoaryFox.Member;
 using Rhino.Geometry;
 using STBDotNet.Elements;
-using STBDotNet.Elements.StbModel;
 using STBDotNet.Elements.StbModel.StbMember;
 
 namespace HoaryFox.Component.Base
 {
     public class SecTagBase : GH_Component
     {
-        private StbElements _stbElements;
         private int _size;
+        private StbElements _stbElements;
         private readonly MemberBase _member;
-
-        private GH_Structure<GH_String> _frameTags = new GH_Structure<GH_String>();
         private List<Point3d> _tagPos = new List<Point3d>();
+        private GH_Structure<GH_String> _frameTags = new GH_Structure<GH_String>();
 
         protected SecTagBase(string name, string nickname, string description, MemberBase member)
             :base(name, nickname, description, "HoaryFox", "Section")
@@ -68,16 +67,21 @@ namespace HoaryFox.Component.Base
             for (var i = 0; i < _frameTags.PathCount; i++)
             {
                 List<GH_String> tags = _frameTags.Branches[i];
-                string tag = tags[0].ToString() + "\n" + tags[1].ToString() + "\n" + tags[2].ToString() + "\n" + 
-                             tags[3].ToString() + "\n" + tags[4].ToString() + "\n" + tags[5].ToString();
-                args.Display.Draw2dText(tag, Color.Black, _tagPos[i], false, _size);
+                var tag = new StringBuilder();
+                for (var j = 0; j < 5; j++)
+                {
+                    tag.Append(tags[j]);
+                    tag.Append("\n");
+                }
+                tag.Append(tags[5]);
+                args.Display.Draw2dText(tag.ToString(), Color.Black, _tagPos[i], false, _size);
             }
         }
 
         protected override Bitmap Icon => null;
         public override Guid ComponentGuid => new Guid("6300E95D-38AF-47A6-B792-E4680FE37F49");
 
-        private void GetTag(List<IFrame> frames)
+        private void GetTag(IEnumerable<IFrame> frames)
         {
             var tags = new CreateTag(_stbElements.Model.Nodes, _stbElements.Model.Sections);
             _frameTags = tags.Frame(frames);
