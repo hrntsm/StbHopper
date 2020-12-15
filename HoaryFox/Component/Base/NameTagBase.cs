@@ -11,10 +11,9 @@ namespace HoaryFox.Component.Base
 {
     public class NameTagBase : GH_Component
     {
-        private StbElements _stbElements;
         private int _size;
+        private StbElements _stbElements;
         private readonly MemberBase _member;
-
         private readonly List<string> _frameName = new List<string>();
         private readonly List<Point3d> _framePos = new List<Point3d>();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -13,23 +14,41 @@ namespace HoaryFox.Member
     public class CreateTag
     {
         private readonly List<Node> _nodes;
-        private readonly List<ColumnRc> _colRc;
-        private readonly List<ColumnS> _colS;
-        private readonly List<BeamRc> _beamRc;
-        private readonly List<BeamS> _beamS;
-        private readonly List<BraceS> _braceS;
-        private readonly SecSteel _secSteel;
+        private readonly List<ColumnRc> _colRc = new List<ColumnRc>();
+        private readonly List<ColumnS> _colS = new List<ColumnS>();
+        private readonly List<BeamRc> _beamRc = new List<BeamRc>();
+        private readonly List<BeamS> _beamS = new List<BeamS>();
+        private readonly List<BraceS> _braceS = new List<BraceS>();
+        private readonly Steel _steel;
         public List<Point3d> Position { get; } = new List<Point3d>();
 
-        public CreateTag(List<Node> nodes, List<Section> sections)
+        public CreateTag(List<Node> nodes, IEnumerable<Section> sections)
         {
             _nodes = nodes;
-            _secSteel = secSteel;
-            _braceS = braceS;
-            _beamS = beamS;
-            _beamRc = beamRc;
-            _colS = colS;
-            _colRc = colRc;
+            foreach (Section section in sections)
+            {
+                switch (section)
+                {
+                    case ColumnRc colRc:
+                        _colRc.Add(colRc);
+                        break;
+                    case ColumnS colS:
+                        _colS.Add(colS);
+                        break;
+                    case BeamRc beamRc:
+                        _beamRc.Add(beamRc);
+                        break;
+                    case BeamS beamS:
+                        _beamS.Add(beamS);
+                        break;
+                    case BraceS braceS:
+                        _braceS.Add(braceS);
+                        break;
+                    case Steel steel:
+                        _steel = steel;
+                        break;
+                }
+            }
         }
 
         public GH_Structure<GH_String> Frame(IEnumerable<IFrame> frames)
@@ -43,7 +62,7 @@ namespace HoaryFox.Member
                 int idSection = frame.IdSection;
                 var ghPath = new GH_Path(new[] { eNum });
                 KindStructure kind = frame.KindStructure;
-                SetTagPosition(frame, eNum);
+                SetTagPosition(frame);
 
                 switch (kind)
                 {
@@ -61,27 +80,27 @@ namespace HoaryFox.Member
                 }
 
                 ghSecStrings.Append(new GH_String(tagInfo.Name), ghPath);
-                ghSecStrings.Append(new GH_String(tagInfo.ShapeTypes.ToString()), ghPath);
-                ghSecStrings.Append(new GH_String(tagInfo.P1.ToString(CultureInfo.InvariantCulture)), ghPath);
-                ghSecStrings.Append(new GH_String(tagInfo.P2.ToString(CultureInfo.InvariantCulture)), ghPath);
-                ghSecStrings.Append(new GH_String(tagInfo.P3.ToString(CultureInfo.InvariantCulture)), ghPath);
-                ghSecStrings.Append(new GH_String(tagInfo.P4.ToString(CultureInfo.InvariantCulture)), ghPath);
+                ghSecStrings.Append(new GH_String(tagInfo.FigureType.ToString()), ghPath);
+                ghSecStrings.Append(new GH_String(tagInfo.P1.ToString()), ghPath);
+                ghSecStrings.Append(new GH_String(tagInfo.P2.ToString()), ghPath);
+                ghSecStrings.Append(new GH_String(tagInfo.P3.ToString()), ghPath);
+                ghSecStrings.Append(new GH_String(tagInfo.P4.ToString()), ghPath);
             }
         
             return ghSecStrings;
         }
 
-        private void SetTagPosition(IFrame frame, int eNum)
+        private void SetTagPosition(IFrame frame)
         {
             // 始点と終点の座標取得
             int startIndex = frame.IdNodeStart;
             int endIndex = frame.IdNodeEnd;
             var nodeStart = new Point3d(_nodes[startIndex].Position.ToRhino());
-            var nodeEnd = new Point3d(_nodes[endIndex].X, _nodes[endIndex].Y, _nodes[endIndex].Z);
+            var nodeEnd = new Point3d(_nodes[endIndex].Position.ToRhino());
             Position.Add(new Point3d((nodeStart + nodeEnd) / 2d));
         }
 
-        private TagInfo TagSteel(StbFrame frame, int idSection)
+        private TagInfo TagSteel(IFrame frame, int idSection)
         {
             int idShape;
             string shapeName;
@@ -122,31 +141,64 @@ namespace HoaryFox.Member
             return tagInfo;
         }
 
-        private TagInfo TagRc(StbFrame frame, int idSection)
+        private TagInfo TagRc(IFrame frame, int idSection)
         {
-            int secIndex;
-            TagInfo tagInfo;
-            switch (frame.FrameType)
+            var tagInfo = new TagInfo();
+
+            switch (frame)
             {
-                case FrameType.Column:
-                case FrameType.Post:
-                    secIndex = _colRc.Id.IndexOf(idSection);
-                    tagInfo = new TagInfo(_colRc.Name[secIndex], _colRc.Height[secIndex], _colRc.Width[secIndex], 0d, 0d);
+                case Column _:
+                    foreach (ColumnRc rc in _colRc.Where(rc => rc.Id == idSection))
+                    {
+                        tagInfo.Name = rc.Name;
+                        switch (rc.FigureType)
+                        {
+                            case RcColumnFigureType.Rectangle:
+                                tagInfo.P1 = rc.Figure.SecRect.DX;
+                                tagInfo.P2 = rc.Figure.SecRect.DY;
+                                break;
+                            case RcColumnFigureType.Circle:
+                                tagInfo.P1 = rc.Figure.SecCircle.D;
+                                tagInfo.P2 = -1;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                        tagInfo.FigureType = rc.FigureType.ToString();
+                    }
                     break;
-                case FrameType.Girder:
-                case FrameType.Beam:
-                    secIndex = _beamRc.Id.IndexOf(idSection);
-                    tagInfo = new TagInfo(_beamRc.Name[secIndex], _beamRc.Depth[secIndex], _beamRc.Width[secIndex], 0d, 0d);
+                case Girder _:
+                    foreach (BeamRc rc in _beamRc.Where(rc => rc.Id == idSection))
+                    {
+                        tagInfo.Name = rc.Name;
+                        switch (rc.FigureType)
+                        {
+                            case RcBeamFigureType.Straight:
+                                tagInfo.P1 = rc.Figure.SecStraight.Depth;
+                                tagInfo.P2 = rc.Figure.SecStraight.Width;
+                                break;
+                            case RcBeamFigureType.Haunch:
+                                tagInfo.P1 = rc.Figure.SecHaunch.DepthCenter;
+                                tagInfo.P1 = rc.Figure.SecHaunch.WidthCenter;
+                                break;
+                            case RcBeamFigureType.Taper:
+                                tagInfo.P1 = rc.Figure.SecTaper.DepthEnd;
+                                tagInfo.P1 = rc.Figure.SecTaper.WidthEnd;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
+                        tagInfo.FigureType = rc.FigureType.ToString();
+                    }
                     break;
-                case FrameType.Brace:
-                case FrameType.Slab:
-                case FrameType.Wall:
-                case FrameType.Any:
+                case Brace _:
                     throw new ArgumentException("Wrong frame type");
                 default:
                     throw new ArgumentOutOfRangeException();
+
             }
-            tagInfo.ShapeTypes = tagInfo.P1 <= 0 ? ShapeTypes.Pipe : ShapeTypes.BOX;
+
             return tagInfo;
         }
     }
@@ -154,7 +206,7 @@ namespace HoaryFox.Member
     public class TagInfo
     {
         public string Name { get; set; }
-        public ShapeTypes ShapeTypes { get;  set; }
+        public string FigureType { get;  set; }
         public double P1 { get; set; }
         public double P2 { get; set; }
         public double P3 { get; set; }
