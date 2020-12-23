@@ -102,36 +102,62 @@ namespace HoaryFox.Member
 
         private TagInfo TagSteel(IFrame frame, int idSection)
         {
-            int idShape;
+            var tagInfo = new TagInfo();
             string shapeName;
-            switch (frame.FrameType)
+            switch (frame)
             {
-                case FrameType.Column:
-                case FrameType.Post:
-                    idShape = _colS.Id.IndexOf(idSection);
-                    shapeName = _colS.Shape[idShape];
+                case Column _:
+                    foreach (ColumnS colS in _colS.Where(st => st.Id == idSection))
+                    {
+                        tagInfo.Name = colS.Name;
+                        switch (colS.SecSteelColumn.Length)
+                        {
+                            case 1:
+                                shapeName = colS.SecSteelColumn[0].Shape;
+                                break;
+                            case 2:
+                                foreach (SecSteel secSteel in colS.SecSteelColumn)
+                                {
+                                    if (secSteel.Position == "BOTTOM")
+                                    {
+                                        shapeName = secSteel.Shape;
+                                    }
+                                }
+                                break;
+                            case 3:
+                                foreach (SecSteel secSteel in colS.SecSteelColumn)
+                                {
+                                    if (secSteel.Position == "CENTER")
+                                    {
+                                        shapeName = secSteel.Shape;
+                                    }
+                                }
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
                     break;
-                case FrameType.Girder:
-                case FrameType.Beam:
-                    idShape = _beamS.Id.IndexOf(idSection);
-                    shapeName = _beamS.Shape[idShape];
+                case Girder _:
+                    foreach (BeamS beamS in _beamS.Where(st => st.Id == idSection))
+                    {
+                    }
                     break;
-                case FrameType.Brace:
-                    idShape = _braceS.Id.IndexOf(idSection);
-                    shapeName = _braceS.Shape[idShape];
+                case Brace _:
+                    foreach (BraceS braceS in _braceS.Where(st => st.Id == idSection))
+                    {
+                    }
                     break;
-                case FrameType.Slab:
-                case FrameType.Wall:
-                case FrameType.Any:
-                    throw new ArgumentException("Wrong frame type");
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            int secIndex = _secSteel.Name.IndexOf(shapeName);
-            var tagInfo = new TagInfo
+            return tagInfo;
+
+            int secIndex = _steel.Name.IndexOf(shapeName);
+            // var tagInfo = new TagInfo
             {
-                Name = _secSteel.Name[secIndex],
+                Name = _steel.Name[secIndex],
                 ShapeTypes = _secSteel.ShapeType[secIndex],
                 P1 = _secSteel.P1[secIndex],
                 P2 = _secSteel.P2[secIndex],
@@ -196,7 +222,6 @@ namespace HoaryFox.Member
                     throw new ArgumentException("Wrong frame type");
                 default:
                     throw new ArgumentOutOfRangeException();
-
             }
 
             return tagInfo;
