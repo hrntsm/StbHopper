@@ -1,11 +1,14 @@
+root = true
 # EditorConfig is awesome: https://EditorConfig.org
 
 # top-most EditorConfig file
-root = true
 
 # Don't use tabs for indentation.
 [*]
 indent_style = space
+
+# ReSharper properties
+resharper_for_built_in_types = use_var_when_evident
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 
 # Code files
@@ -39,7 +42,7 @@ indent_size = 2
 [*.{cs,vb}]
 
 # IDE0055: Fix formatting
-dotnet_diagnostic.IDE0055.severity = warning
+dotnet_diagnostic.ide0055.severity = warning
 
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
@@ -142,23 +145,22 @@ dotnet_naming_symbols.all_members.applicable_kinds = *
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
-dotnet_diagnostic.RS2008.severity = none
+dotnet_diagnostic.rs2008.severity = none
 
 # IDE0073: File header
-dotnet_diagnostic.IDE0073.severity = warning
-file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
+dotnet_diagnostic.ide0073.severity = warning
 
 # IDE0035: Remove unreachable code
-dotnet_diagnostic.IDE0035.severity = warning
+dotnet_diagnostic.ide0035.severity = warning
 
 # IDE0036: Order modifiers
-dotnet_diagnostic.IDE0036.severity = warning
+dotnet_diagnostic.ide0036.severity = warning
 
 # IDE0043: Format string contains invalid placeholder
-dotnet_diagnostic.IDE0043.severity = warning
+dotnet_diagnostic.ide0043.severity = warning
 
 # IDE0044: Make field readonly
-dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.ide0044.severity = warning
 
 # RS0016: Only enable if API files are present
 dotnet_public_api_analyzer.require_api_files = true
@@ -181,11 +183,6 @@ csharp_indent_case_contents = true
 csharp_indent_case_contents_when_block = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
-
-# Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
 
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none
@@ -235,42 +232,42 @@ csharp_preserve_single_line_statements = true
 
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
-dotnet_diagnostic.RS0005.severity = none
+dotnet_diagnostic.rs0005.severity = none
 
 [src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures, VisualStudio}/**/*.{cs,vb}]
 
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
 # NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
-dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.ide0011.severity = warning
 
 # IDE0040: Add accessibility modifiers
-dotnet_diagnostic.IDE0040.severity = warning
+dotnet_diagnostic.ide0040.severity = warning
 
 # CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
 # IDE0051: Remove unused private member
-dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.ide0051.severity = warning
 
 # IDE0052: Remove unread private member
-dotnet_diagnostic.IDE0052.severity = warning
+dotnet_diagnostic.ide0052.severity = warning
 
 # IDE0059: Unnecessary assignment to a value
-dotnet_diagnostic.IDE0059.severity = warning
+dotnet_diagnostic.ide0059.severity = warning
 
 # IDE0060: Remove unused parameter
-dotnet_diagnostic.IDE0060.severity = warning
+dotnet_diagnostic.ide0060.severity = warning
 
 # CA1822: Make member static
-dotnet_diagnostic.CA1822.severity = warning
+dotnet_diagnostic.ca1822.severity = warning
 
 # Prefer "var" everywhere
-dotnet_diagnostic.IDE0007.severity = warning
-csharp_style_var_for_built_in_types = true:warning
-csharp_style_var_when_type_is_apparent = true:warning
-csharp_style_var_elsewhere = true:warning
+dotnet_diagnostic.ide0007.severity = warning
+csharp_style_var_elsewhere = false:none
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:none
 
 [src/{VisualStudio}/**/*.{cs,vb}]
 # CA1822: Make member static
 # Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
 # Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
-dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.ca1822.severity = suggestion
