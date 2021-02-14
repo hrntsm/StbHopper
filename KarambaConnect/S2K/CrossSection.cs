@@ -30,19 +30,35 @@ namespace KarambaConnect.S2K
             return k3Ids;
         }
 
-        public static List<CroSec> GetCroSec(StbData stbData, CroSecFamilyName familyName)
+        public static IEnumerable<CroSec> GetCroSec(StbData stbData, CroSecFamilyName familyName, List<MatchedMaterial> materials)
         {
-            // TODO: 材軸の回転は未設定（どこで設定するかも謎）
+            // TODO: 材軸の回転は未設定（部材軸を設定する箇所指定できる）
             var k3CroSec = new List<CroSec>();
+            materials.AddRange(DefaultMaterials());
 
-            var fc21 = new FemMaterial_Isotrop("Concrete", "Fc21", 2186_0000, 911_0000, 911_0000, 24, 14_0000, 1.00E-05, Color.Gray);
-            var sn400 = new FemMaterial_Isotrop("Steel", "SN400", 20500_0000, 8076_0000, 8076_0000, 78.5, 235_0000, 1.20E-05, Color.Brown);
-
-            k3CroSec.AddRange(ColumnRc(stbData, fc21, familyName));
-            k3CroSec.AddRange(BeamRc(stbData, fc21, familyName));
-            k3CroSec.AddRange(Steel(stbData, sn400, familyName));
+            // TODO: STBReader じゃそもそも材料の情報をとってきてないのでマッチも何もなかった。STBDotNet化が必要！！！！
+            k3CroSec.AddRange(ColumnRc(stbData, materials, familyName));
+            k3CroSec.AddRange(BeamRc(stbData, materials, familyName));
+            k3CroSec.AddRange(Steel(stbData, materials, familyName));
 
             return k3CroSec;
+        }
+
+        private static IEnumerable<MatchedMaterial> DefaultMaterials()
+        {
+            return new List<MatchedMaterial>
+            {
+                new MatchedMaterial(
+                    new List<string> {"fc21"},
+                    new FemMaterial_Isotrop("Concrete", "Fc21", 2186_0000, 911_0000, 911_0000, 24, 14_0000, 1.00E-05,
+                        Color.Gray)
+                ),
+                new MatchedMaterial(
+                    new List<string> {"SN400"},
+                    new FemMaterial_Isotrop("Steel", "SN400", 20500_0000, 8076_0000, 8076_0000, 78.5, 235_0000,
+                        1.20E-05, Color.Brown)
+                )
+            };
         }
 
         private static IEnumerable<CroSec> ColumnRc(StbData stbData, FemMaterial material, CroSecFamilyName familyName)

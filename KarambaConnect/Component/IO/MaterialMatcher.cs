@@ -24,7 +24,7 @@ namespace KarambaConnect.Component.IO
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Material Pair", "MatPair", "Matched material pair", GH_ParamAccess.list);
+            pManager.AddGenericParameter("MaterialPair", "MatPair", "Matched material pair", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)

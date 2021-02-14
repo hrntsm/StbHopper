@@ -37,6 +37,7 @@ namespace KarambaConnect.Component.IO
         {
             pManager.AddGenericParameter("Data", "D", "Input ST-Bridge Data", GH_ParamAccess.item);
             pManager.AddGenericParameter("FamilyName", "Family", "Each CrossSection Family Name", GH_ParamAccess.item);
+            pManager.AddGenericParameter("MaterialPair", "MatPair", "Pair of matching stb and Karamba3D materials", GH_ParamAccess.list);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -49,15 +50,17 @@ namespace KarambaConnect.Component.IO
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var familyName = new CroSecFamilyName();
+            var materialPairs = new List<MatchedMaterial>();
             if (!DA.GetData(0, ref _stbData)) { return; }
             if (!DA.GetData(1, ref familyName))
             {
                 familyName = CroSecFamilyName.Default();
             }
+            if (!DA.GetDataList(2, materialPairs)) { return; }
 
 
             List<string>[] k3Ids = CrossSection.GetIndex(_stbData);
-            List<CroSec> k3CroSec = CrossSection.GetCroSec(_stbData, familyName);
+            IEnumerable<CroSec> k3CroSec = CrossSection.GetCroSec(_stbData, familyName, materialPairs);
             List<BuilderBeam> elems = Element.BuilderBeams(_stbData, k3Ids);
             List<GH_Element> ghElements = elems.Select(e => new GH_Element(e)).ToList();
             _k3ElemBe = ghElements;
