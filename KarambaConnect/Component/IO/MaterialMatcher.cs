@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Drawing;
+using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Karamba.GHopper.Materials;
-using KarambaConnect.Properties;
+using Karamba.Materials;
 using KarambaConnect.S2K;
 
 namespace KarambaConnect.Component.IO
@@ -18,39 +18,32 @@ namespace KarambaConnect.Component.IO
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Stb Material Name", "sMat", "Box shape cross section family name", GH_ParamAccess.item, "HF-Box");
+            pManager.AddTextParameter("Stb Material Name", "sMat", "Material name as defined in the ST-Bridge", GH_ParamAccess.list);
             pManager.AddParameter(new Param_FemMaterial(), "Karamba Material", "KMat", "Karamba3D material data to match", GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("FamilyName", "Family", "Each CrossSection Family Name", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Material Pair", "MatPair", "Matched material pair", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var name = new string[8];
-            for (var i = 0; i < name.Length; i++)
+            var materialIn = new object();
+            var materialName = new List<string>();
+            if (!DA.GetDataList(0, materialName)) { return; }
+            if (!DA.GetData(1, ref materialIn)) { return; }
+
+            if (!(materialIn is GH_FemMaterial ghFemMaterial))
             {
-                if (!DA.GetData(i, ref name[i])) { return; }
+                throw new ArgumentException("The input is not Karamba3D material setting!");
             }
 
-            var familyName = new CroSecFamilyName
-            {
-                Box = name[0],
-                H = name[1],
-                Circle = name[2],
-                Pipe = name[3],
-                FB = name[4],
-                L = name[5],
-                T = name[6],
-                Other = name[7]
-            };
-
-            DA.SetData(0, familyName);
+            FemMaterial kMaterial = ghFemMaterial.Value;
+            DA.SetData(0, new MatchedMaterial(materialName, kMaterial));
         }
 
-        protected override Bitmap Icon => Resource.SetFamilyName;
-        public override Guid ComponentGuid => new Guid("6479593D-DC0A-4362-BE28-515E6AC0E342");
+        // protected override Bitmap Icon => Resource.SetFamilyName;
+        public override Guid ComponentGuid => new Guid("8306859F-624B-426B-B983-B1E7199ADD47");
     }
 }

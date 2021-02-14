@@ -79,6 +79,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
+    <Compile Include="S2K\MatchedMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\SetFamilyName.png" />
