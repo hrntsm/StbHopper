@@ -55,6 +55,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Component\IO\MaterialMatcher.cs" />
     <Compile Include="Component\IO\SetFamilyName.cs" />
     <Compile Include="Component\StbBuilder\AxisBuilder.cs" />
     <Compile Include="Component\StbBuilder\NodeBuilder.cs" />
